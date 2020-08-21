@@ -1,5 +1,6 @@
 import Component from "../component.js";
 import * as html from "../html.js";
+import * as conf from "../conf.js";
 
 class MediaHandler extends Component {
 	connectedCallback() {
@@ -16,7 +17,7 @@ class MediaHandler extends Component {
 		// Init event session (play audio) on click (because restrictions by web browsers)
 		let mediaSessionInit = false;
 		window.addEventListener('click', () => {
-			if (!mediaSessionInit) {
+			if (conf.mediaSession && !mediaSessionInit) {
 				audio.play();
 				mediaSessionInit = true;
 			}

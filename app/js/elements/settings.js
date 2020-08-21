@@ -18,7 +18,8 @@ class Settings extends Component {
 		this._inputs = {
 			theme: this.querySelector("[name=theme]"),
 			ytLimit: this.querySelector("[name=yt-limit]"),
-			color: Array.from(this.querySelectorAll("[name=color]"))
+			color: Array.from(this.querySelectorAll("[name=color]")),
+			mediaSession: this.querySelector("[name=media-session]")
 		};
 	}
 
@@ -33,6 +34,7 @@ class Settings extends Component {
 		this._inputs.color.forEach(input => {
 			input.addEventListener("click", e => this._setColor(e.target.value));
 		});
+		this._inputs.mediaSession.addEventListener("change", e => this._setMediaSession(e.target.value));
 
 		const theme = loadFromStorage("theme");
 		(theme ? this._app.setAttribute("theme", theme) : this._syncTheme());
@@ -42,6 +44,10 @@ class Settings extends Component {
 
 		const ytLimit = loadFromStorage("ytLimit") || conf.ytLimit;
 		this._setYtLimit(ytLimit);
+
+		const mediaSession = loadFromStorage("mediaSession") || conf.mediaSession;
+		this._setMediaSession(mediaSession);
+		this._inputs.mediaSession.value = mediaSession
 	}
 
 	_onAppAttributeChange(mr) {
@@ -73,6 +79,15 @@ class Settings extends Component {
 	_setYtLimit(ytLimit) {
 		saveToStorage("ytLimit", ytLimit);
 		conf.setYtLimit(ytLimit);
+	}
+
+	_setMediaSession(value) {
+		// force boolean (because local storage can store only string)
+		if (typeof value === 'string') {
+			value = value === 'true';
+		}
+		saveToStorage("mediaSession", value);
+		conf.setMediaSession(value);
 	}
 
 	_onComponentChange(c, isThis) {

@@ -777,8 +777,10 @@ customElements.define("cyp-menu", Menu);
 const artSize = 96;
 const ytPath = "_youtube";
 let ytLimit = 3;
+let mediaSession = true;
 
 function setYtLimit(limit) { ytLimit = limit; }
+function setMediaSession(value) { mediaSession = value; }
 
 const cache = {};
 const MIME = "image/jpeg";
@@ -1312,7 +1314,8 @@ class Settings extends Component {
 		this._inputs = {
 			theme: this.querySelector("[name=theme]"),
 			ytLimit: this.querySelector("[name=yt-limit]"),
-			color: Array.from(this.querySelectorAll("[name=color]"))
+			color: Array.from(this.querySelectorAll("[name=color]")),
+			mediaSession: this.querySelector("[name=media-session]")
 		};
 	}
 
@@ -1327,6 +1330,7 @@ class Settings extends Component {
 		this._inputs.color.forEach(input => {
 			input.addEventListener("click", e => this._setColor(e.target.value));
 		});
+		this._inputs.mediaSession.addEventListener("change", e => this._setMediaSession(e.target.value));
 
 		const theme = loadFromStorage("theme");
 		(theme ? this._app.setAttribute("theme", theme) : this._syncTheme());
@@ -1336,6 +1340,10 @@ class Settings extends Component {
 
 		const ytLimit$1 = loadFromStorage("ytLimit") || ytLimit;
 		this._setYtLimit(ytLimit$1);
+
+		const mediaSession$1 = loadFromStorage("mediaSession") || mediaSession;
+		this._setMediaSession(mediaSession$1);
+		this._inputs.mediaSession.value = mediaSession$1;
 	}
 
 	_onAppAttributeChange(mr) {
@@ -1367,6 +1375,15 @@ class Settings extends Component {
 	_setYtLimit(ytLimit) {
 		saveToStorage("ytLimit", ytLimit);
 		setYtLimit(ytLimit);
+	}
+
+	_setMediaSession(value) {
+		// force boolean (because local storage can store only string)
+		if (typeof value === 'string') {
+			value = value === 'true';
+		}
+		saveToStorage("mediaSession", value);
+		setMediaSession(value);
 	}
 
 	_onComponentChange(c, isThis) {
@@ -1875,14 +1892,14 @@ class MediaHandler extends Component {
 			return;
 		}
 
-		// DOM
+		// DOM (using media session controls are allowed only if there is audio/video tag)
 		const audio = node("audio", {loop: true}, "", this);
 		node("source", {src: 'https://raw.githubusercontent.com/anars/blank-audio/master/10-seconds-of-silence.mp3'}, '', audio);
 
 		// Init event session (play audio) on click (because restrictions by web browsers)
 		let mediaSessionInit = false;
 		window.addEventListener('click', () => {
-			if (!mediaSessionInit) {
+			if (mediaSession && !mediaSessionInit) {
 				audio.play();
 				mediaSessionInit = true;
 			}
